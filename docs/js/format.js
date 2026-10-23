@@ -25,7 +25,7 @@ function at(time) {
 
 // today = pražský den (0 = pondělí); hasRaw = knihovna má otevírací dobu, ale nejde převést
 export function statusText(status, today, hasRaw = false) {
-  if (status.state === "open") return `Otevřeno · do ${formatTime(status.until)}`;
+  if (status.state === "open") return `Otevřeno · dnes do ${formatTime(status.until)}`;
   if (status.reason === "holiday") return "Dnes je státní svátek, otevření ověřte";
   if (status.reason === "qualified") return "Otevírací doba má výjimky, viz poznámka";
   if (status.state === "unknown") return hasRaw ? "Otevírací dobu nelze určit" : "Otevírací doba neuvedena";

@@ -7,87 +7,169 @@
   <meta name="color-scheme" content="light dark">
   <title>Knihovny ČR</title>
   <meta name="description" content="Mapa veřejně přístupných knihoven v České republice s otevírací dobou.">
+  <link rel="preload" href="fonts/atkinson-next-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/literata-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" integrity="sha512-ENrTWqddXrLJsQS2A86QmvA17PkJ0GVm1bqj5aTgpeMAfDKN2+SIOLpKG8R/6KkimnhTb+VW5qqUHB/r1zaRgg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/app.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" integrity="sha512-TiMWaqipFi2Vqt4ugRzsF8oRoGFlFFuqIi30FFxEPNw58Ov9mOy6LgC05ysfkxwLE0xVeZtmr92wVg9siAFRWA==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
   <script type="module" src="js/app.js"></script>
 </head>
-<body>
+<body data-tab="list">
   <header class="topbar">
-    <h1 class="brand">Knihovny <span>ČR</span></h1>
+    <a class="brand" href="./" aria-label="Knihovny ČR, na začátek">
+      <span class="brand-name">Knihovny <b>ČR</b></span>
+      <small class="brand-tagline">veřejné knihovny na jednom místě</small>
+    </a>
     <form class="search" id="search-form" role="search" autocomplete="off">
       <label for="search" class="sr-only">Hledat obec, adresu nebo knihovnu</label>
-      <input id="search" type="search" placeholder="Obec, adresa nebo název knihovny"
+      <input id="search" type="search" placeholder="Obec, adresa nebo knihovna"
              role="combobox" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false">
-      <button type="submit" id="search-btn" class="btn">Hledat</button>
+      <button type="submit" id="search-btn">Hledat</button>
       <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
     </form>
-    <button id="locate" class="btn btn-locate" type="button" aria-label="Moje poloha">
-      <span aria-hidden="true">◎</span><span class="label">Moje poloha</span>
+    <button id="locate" class="btn-ghost locate" type="button">
+      <svg class="icon" aria-hidden="true"><use href="#i-locate"></use></svg><span class="label">Moje poloha</span>
     </button>
+    <button id="about-open" class="link-btn about-open" type="button">O datech</button>
   </header>
 
-  <div id="message" class="message" role="status" hidden></div>
+  <div class="tabs" role="tablist" aria-label="Zobrazení">
+    <button id="tab-list" role="tab" aria-selected="true" aria-controls="pane-list" type="button">Seznam</button>
+    <button id="tab-map" role="tab" aria-selected="false" aria-controls="pane-map" type="button" tabindex="-1">Mapa</button>
+  </div>
 
   <main class="layout">
-    <div id="map" class="map" aria-label="Mapa knihoven"></div>
-
-    <aside id="panel" class="panel" data-sheet="half">
-      <button id="sheet-handle" class="sheet-handle" type="button" aria-label="Zvětšit nebo zmenšit panel"></button>
-
-      <section class="filters" aria-label="Filtry">
-        <div class="quick">
-          <button id="quick-open" class="chip" type="button" aria-pressed="false">Otevřeno teď</button>
-          <button id="toggle-filters" class="chip" type="button" aria-expanded="false" aria-controls="filter-body">
-            Filtry <span id="filter-count" class="count" hidden></span>
+    <section id="pane-list" class="pane-list" role="tabpanel" aria-labelledby="tab-list">
+      <aside id="filters" class="filters" aria-label="Filtry">
+        <div class="filters-head">
+          <h2>Filtry</h2>
+          <button id="filters-close" class="icon-btn" type="button" aria-label="Zavřít filtry">
+            <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
           </button>
-          <button id="quick-locate" class="chip chip-locate" type="button" aria-label="Moje poloha">◎</button>
         </div>
-        <div id="filter-body" class="filter-body" hidden>
-          <div class="field">
-            <label for="f-region">Kraj</label>
-            <select id="f-region"><option value="">Všechny kraje</option></select>
-          </div>
-          <div class="field">
-            <label for="f-district">Okres</label>
-            <select id="f-district" disabled><option value="">Všechny okresy</option></select>
-          </div>
-          <fieldset class="field">
-            <legend>Typ knihovny</legend>
-            <div id="f-categories" class="checks"></div>
-            <label class="check"><input type="checkbox" id="f-main"> Jen hlavní budovy, bez poboček</label>
-          </fieldset>
-          <fieldset class="field">
+        <div class="filters-body">
+          <fieldset class="group">
             <legend>Otevírací doba</legend>
             <label class="check"><input type="checkbox" id="f-open"> Otevřeno teď</label>
             <label class="check"><input type="checkbox" id="f-weekend"> Otevřeno o víkendu</label>
-            <label class="check"><input type="checkbox" id="f-unknown" checked> Ukázat i knihovny s neuvedenou dobou</label>
+            <label class="check"><input type="checkbox" id="f-unknown" checked> I knihovny s neuvedenou dobou</label>
           </fieldset>
-          <fieldset class="field">
+          <fieldset class="group">
+            <legend>Kraj a okres</legend>
+            <label for="f-region" class="sr-only">Kraj</label>
+            <select id="f-region"><option value="">Všechny kraje</option></select>
+            <label for="f-district" class="sr-only">Okres</label>
+            <select id="f-district" disabled><option value="">Všechny okresy</option></select>
+          </fieldset>
+          <fieldset class="group">
+            <legend>Typ knihovny</legend>
+            <div id="f-categories" class="checks"></div>
+            <label class="check"><input type="checkbox" id="f-main"> Jen hlavní budovy</label>
+          </fieldset>
+          <fieldset class="group">
             <legend>Služby</legend>
             <div id="f-services" class="checks"></div>
           </fieldset>
-          <button id="f-reset" class="btn btn-quiet" type="button">Zrušit filtry</button>
         </div>
-      </section>
+        <div class="filters-foot">
+          <button id="f-apply" class="btn" type="button">Zobrazit knihovny</button>
+          <button id="f-reset" class="link-btn" type="button">Zrušit filtry</button>
+        </div>
+      </aside>
 
-      <section id="list-view" class="list-view" aria-label="Seznam knihoven">
-        <p id="list-summary" class="list-summary" aria-live="polite">Načítám knihovny…</p>
+      <div class="results">
+        <div class="toolbar">
+          <div class="quick">
+            <button id="quick-open" class="chip" type="button" aria-pressed="false">Otevřeno teď</button>
+            <button id="filters-toggle" class="chip" type="button" aria-expanded="false" aria-controls="filters">
+              Filtry <span id="filter-count" class="count" hidden></span>
+            </button>
+          </div>
+          <div id="active-chips" class="active-chips" aria-label="Aktivní filtry"></div>
+          <div class="summary-row">
+            <p id="list-summary" class="list-summary" aria-live="polite">Načítám knihovny…</p>
+            <label class="sort">Řadit
+              <select id="sort">
+                <option value="distance">vzdálenost</option>
+                <option value="name">název</option>
+                <option value="open">nejdřív otevřené</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <section id="start" class="start" hidden aria-labelledby="start-title">
+          <h2 id="start-title">Najděte knihovnu ve svém okolí</h2>
+          <p>Zadejte obec nebo adresu do hledání nahoře, nebo použijte svou polohu. Ukážeme, které knihovny jsou poblíž a jestli mají právě otevřeno.</p>
+          <button id="start-locate" class="btn" type="button">
+            <svg class="icon" aria-hidden="true"><use href="#i-locate"></use></svg> Použít mou polohu
+          </button>
+          <dl class="stats">
+            <div><dt>knihoven v mapě</dt><dd id="stat-total">–</dd></div>
+            <div><dt>teď otevřeno</dt><dd id="stat-open">–</dd></div>
+          </dl>
+          <button id="start-browse" class="link-btn" type="button">Procházet všechny knihovny</button>
+        </section>
+
         <ol id="list" class="list"></ol>
-      </section>
+        <button id="more" class="btn btn-outline more" type="button" hidden>Zobrazit další</button>
 
-      <section id="detail-view" class="detail" aria-label="Detail knihovny" hidden></section>
+        <footer class="sources">
+          Data: Centrální adresář knihoven NK ČR (CC0), stav k <span id="generated">–</span> ·
+          mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">přispěvatelé OpenStreetMap</a> ·
+          <button class="link-btn" type="button" data-open-about>O datech</button>
+        </footer>
+      </div>
+    </section>
 
-      <footer class="sources">
-        Data: <a href="https://www.nkp.cz/katalogy-databaze-digitalni-knihovny/centralni-adresar-knihoven-a-informacnich-instituci-v-cr-cadr" target="_blank" rel="noopener">Centrální adresář knihoven NK ČR</a> (CC0),
-        stav k <span id="generated">–</span>.
-        Mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">přispěvatelé OpenStreetMap</a>,
-        hledání adres <a href="https://nominatim.org/" target="_blank" rel="noopener">Nominatim</a>.
-        Jména a kontakty, které mohou patřit soukromým osobám, záměrně nezobrazujeme.
-      </footer>
-    </aside>
+    <section id="pane-map" class="pane-map" role="tabpanel" aria-labelledby="tab-map">
+      <div id="map" class="map" role="region" aria-label="Mapa knihoven"></div>
+      <div id="map-card" class="map-card" hidden></div>
+      <aside id="detail" class="detail" aria-labelledby="detail-title" hidden></aside>
+    </section>
   </main>
+
+  <div id="message" class="message" role="status" hidden></div>
+
+  <dialog id="about" class="about" aria-labelledby="about-title">
+    <div class="about-head">
+      <h2 id="about-title">O datech</h2>
+      <button class="icon-btn" type="button" data-close-about aria-label="Zavřít">
+        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+      </button>
+    </div>
+    <div class="about-body">
+      <h3>Odkud data jsou</h3>
+      <p>Z <a href="https://www.nkp.cz/katalogy-databaze-digitalni-knihovny/centralni-adresar-knihoven-a-informacnich-instituci-v-cr-cadr" target="_blank" rel="noopener">Centrálního adresáře knihoven a informačních institucí</a> Národní knihovny ČR (licence CC0). Snímek ke dni <span id="about-generated">–</span>.</p>
+      <h3>Které knihovny tu jsou</h3>
+      <p>Knihovny zapsané v evidenci Ministerstva kultury, které ze zákona poskytují služby veřejnosti, a jejich pobočky. Zrušené knihovny tu nejsou.</p>
+      <h3>Jak počítáme „otevřeno“</h3>
+      <p>Podle otevírací doby z adresáře a pražského času. Když text nejde jednoznačně převést, poznámka uvádí výjimky (sudé týdny, uzavření, letní provoz) nebo je státní svátek, ukážeme „nelze určit“. Údaje mohou být zastaralé, před návštěvou je ověřte na webu knihovny.</p>
+      <h3>Osobní údaje</h3>
+      <p>Jména vedoucích ukazujeme jen u knihoven s vlastní právní subjektivitou a u krajských a národních knihoven. E-maily a telefony jen obecné, žádná mobilní čísla. Z poznámek odstraňujeme jména a osobní kontakty.</p>
+      <h3>Mapa a hledání</h3>
+      <p>Podkladová mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">přispěvatelé OpenStreetMap</a>, hledání adres <a href="https://nominatim.org/" target="_blank" rel="noopener">Nominatim</a>. Zdrojový kód: <a href="https://github.com/karlovecadam-ctrl/knihovny-cr" target="_blank" rel="noopener">GitHub</a>.</p>
+    </div>
+  </dialog>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-nav" viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 5v16M8 7h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-web" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="6" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="18" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.2 11l7.6-4M8.2 13l7.6 4" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 7l9 6 9-6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21a8 8 0 0116 0" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-branch" viewBox="0 0 24 24"><path d="M4 21V9l8-5 8 5v12M9 21v-6h6v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shelf" viewBox="0 0 24 24"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16 5l3.5-1 2.5 15-3.5 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  </svg>
 </body>
 </html>

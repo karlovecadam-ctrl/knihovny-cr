@@ -12,7 +12,7 @@ test("české tvary počtu", () => {
 });
 
 test("text stavu", () => {
-  assert.equal(statusText({ state: "open", until: "18:00" }, 1), "Otevřeno · do 18:00");
+  assert.equal(statusText({ state: "open", until: "18:00" }, 1), "Otevřeno · dnes do 18:00");
   assert.equal(statusText({ state: "closed", next: { day: 1, time: "13:00" } }, 1), "Zavřeno · otevírá ve 13:00");
   assert.equal(statusText({ state: "closed", next: { day: 2, time: "09:00" } }, 1), "Zavřeno · otevírá zítra v 9:00");
   assert.equal(statusText({ state: "closed", next: { day: 4, time: "16:00" } }, 1), "Zavřeno · otevírá Pá 16:00");
