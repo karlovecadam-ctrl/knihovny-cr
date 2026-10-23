@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isHoliday, openOnWeekend, openStatus, pragueDate, pragueNow } from "../docs/js/status.js";
+import { isHoliday, openOnWeekend, openStatus, pragueDate, pragueNow, stateChanges } from "../docs/js/status.js";
 
 const week = (days) => ({ days, parsed: true, raw: {}, note: null });
 const empty = () => [[], [], [], [], [], [], []];
@@ -88,6 +88,23 @@ test("svátky včetně Velikonoc", () => {
 
 test("pražské datum přes půlnoc na Silvestra", () => {
   assert.deepEqual(pragueDate(new Date("2026-12-31T23:30:00Z")), { year: 2027, month: 1, day: 1 });
+});
+
+test("změny stavu: vrací jen knihovny, kterým se stav změnil", () => {
+  const days = empty();
+  days[1] = [["09:00", "10:00"]];
+  const libs = [
+    { id: "a", hours: week(days) },
+    { id: "b", hours: null },
+  ];
+  const first = stateChanges(libs, new Map(), new Date("2026-10-20T07:30:00Z")); // Út 9:30
+  assert.deepEqual(first.changed.sort(), ["a", "b"]);
+  assert.equal(first.states.get("a"), "open");
+  const same = stateChanges(libs, first.states, new Date("2026-10-20T07:45:00Z"));
+  assert.deepEqual(same.changed, []);
+  const later = stateChanges(libs, same.states, new Date("2026-10-20T08:05:00Z")); // 10:05
+  assert.deepEqual(later.changed, ["a"]);
+  assert.equal(later.states.get("a"), "closed");
 });
 
 test("otevřeno o víkendu", () => {

@@ -33,7 +33,7 @@ def _address(street: str | None, zip_code: str | None, town: str | None) -> str:
 
 
 def _urls(rec: Record) -> tuple[str | None, str | None]:
-    web = catalog = None
+    web = catalog = facebook = None
     for occ in rec.get("URL", []):
         url = (occ.get("u") or [None])[0]
         # do odkazu na stránce smí jen http(s)
@@ -42,9 +42,12 @@ def _urls(rec: Record) -> tuple[str | None, str | None]:
         hint = (url + " " + " ".join(occ.get("z", []))).lower()
         if any(h in hint for h in CATALOG_HINTS):
             catalog = catalog or url
-        elif "facebook" not in hint:
+        elif "facebook" in hint:
+            facebook = facebook or url
+        else:
             web = web or url
-    return web, catalog
+    # stránka na Facebooku jen tehdy, když knihovna jiný web nemá
+    return web or facebook, catalog
 
 
 def _services(rec: Record) -> tuple[list[str], list[str]]:

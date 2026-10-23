@@ -28,9 +28,11 @@ test("interval bez úvodní nuly", () => {
   assert.equal(formatInterval(["09:00", "12:00"]), "9:00–12:00");
 });
 
-test("odkaz na Mapy.cz", () => {
+test("odkaz na trasu v Mapy.cz", () => {
   assert.equal(mapyUrl(50.0864, 14.4157),
-    "https://mapy.com/fnc/v1/showmap?mapset=basic&center=14.4157,50.0864&zoom=17&marker=true");
+    "https://mapy.com/fnc/v1/route?end=14.4157,50.0864&routeType=car_fast&navigate=true");
+  assert.equal(mapyUrl(50.0864, 14.4157, { lat: 49.1951, lon: 16.6068 }),
+    "https://mapy.com/fnc/v1/route?start=16.6068,49.1951&end=14.4157,50.0864&routeType=car_fast&navigate=true");
 });
 
 test("fond", () => {

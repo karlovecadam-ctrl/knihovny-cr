@@ -36,8 +36,10 @@ export function statusText(status, today, hasRaw = false) {
   return `Zavřeno · otevírá ${DAY_SHORT[day]} ${formatTime(time)}`;
 }
 
-export function mapyUrl(lat, lon) {
-  return `https://mapy.com/fnc/v1/showmap?mapset=basic&center=${lon},${lat}&zoom=17&marker=true`;
+// Trasa v Mapy.com; bez startu si ho doplní aplikace (na mobilu z aktuální polohy).
+export function mapyUrl(lat, lon, start = null) {
+  const from = start ? `start=${start.lon},${start.lat}&` : "";
+  return `https://mapy.com/fnc/v1/route?${from}end=${lon},${lat}&routeType=car_fast&navigate=true`;
 }
 
 export function formatFund(fund) {

@@ -78,6 +78,18 @@ export function openStatus(hours, date) {
   return { state: "closed" };
 }
 
+// Nové stavy všech knihoven a seznam těch, kterým se stav od minula změnil.
+export function stateChanges(libs, previous, date) {
+  const states = new Map();
+  const changed = [];
+  for (const lib of libs) {
+    const state = openStatus(lib.hours, date).state;
+    states.set(lib.id, state);
+    if (previous.get(lib.id) !== state) changed.push(lib.id);
+  }
+  return { states, changed };
+}
+
 export function openOnWeekend(hours) {
   if (!hours || !hours.parsed || !hours.days || hours.qualified === "always") return null;
   return hours.days[5].length > 0 || hours.days[6].length > 0;

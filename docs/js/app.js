@@ -1,7 +1,8 @@
 // Propojení dat, mapy (Leaflet) a panelu se seznamem, detailem a filtry.
 import { applyFilters, buildPlaces, distanceKm, searchLocal, sortForList } from "./filters.js";
 import { DAY_SHORT, formatFund, formatInterval, mapyUrl, plural, statusText } from "./format.js";
-import { openStatus, pragueNow } from "./status.js";
+import { createGeocoder } from "./geocode.js";
+import { openStatus, pragueNow, stateChanges } from "./status.js";
 
 const LIST_LIMIT = 200;
 const CZ_BOUNDS = [[48.55, 12.09], [51.06, 18.86]];
@@ -49,6 +50,7 @@ export const app = {
   selected: null,
   visible: { matching: [], unknownHours: [] },
   colors: {},
+  states: new Map(),
   generated: "",
 };
 
@@ -144,10 +146,10 @@ function setupMap() {
 }
 
 function buildMarkers() {
-  const now = new Date();
+  app.states = stateChanges(app.libs, new Map(), new Date()).states;
   for (const lib of app.libs) {
     if (lib.lat == null) continue;
-    const state = openStatus(lib.hours, now).state;
+    const state = app.states.get(lib.id);
     const marker = L.circleMarker([lib.lat, lib.lon], markerStyle(state));
     marker.options.state = state;
     // Leaflet vkládá řetězec jako HTML; název z adresáře proto předáváme jako textový uzel
@@ -157,18 +159,24 @@ function buildMarkers() {
   }
 }
 
+// Každou minutu: překreslit jen knihovny, kterým se stav změnil.
 function refreshStates() {
-  const now = new Date();
-  for (const [id, marker] of app.markers) {
-    const state = openStatus(app.byId.get(id).hours, now).state;
-    if (state !== marker.options.state) {
-      marker.options.state = state;
-      marker.setStyle(markerStyle(state));
-    }
+  const { states, changed } = stateChanges(app.libs, app.states, new Date());
+  app.states = states;
+  if (!changed.length) return;
+  const touched = [];
+  for (const id of changed) {
+    const marker = app.markers.get(id);
+    if (!marker) continue;
+    marker.options.state = states.get(id);
+    marker.setStyle(markerStyle(states.get(id)));
+    touched.push(marker);
   }
-  app.cluster.refreshClusters();
-  applyAndRender();
-  if (app.selected) renderDetail(app.byId.get(app.selected));
+  if (touched.length) app.cluster.refreshClusters(touched);
+  // výběr na mapě závisí na čase jen u „otevřeno teď“ a při skrytých neznámých
+  if (filters.openNow || !filters.includeUnknown) applyAndRender();
+  else if (!app.selected) renderList();
+  if (app.selected && changed.includes(app.selected)) renderDetail(app.byId.get(app.selected));
 }
 
 export function applyAndRender() {
@@ -188,7 +196,7 @@ function listItem(lib, now, today) {
   const st = openStatus(lib.hours, now);
   const dist = app.point && lib.lat != null ? formatKm(distanceKm(app.point, lib)) : null;
   return h("li", {},
-    h("button", { class: "item", type: "button", onclick: () => openDetail(lib.id, { pan: true }) },
+    h("button", { class: "item", type: "button", "data-id": lib.id, onclick: () => openDetail(lib.id, { pan: true }) },
       h("span", { class: "item-name" }, lib.name),
       h("span", { class: "item-meta" },
         lib.municipality ? h("span", {}, lib.municipality) : null,
@@ -212,6 +220,7 @@ export function renderList() {
     app.point ? ` · podle vzdálenosti ${app.pointLabel} ` : "",
     app.point ? h("button", { class: "linkish", type: "button", onclick: clearPoint }, "zrušit") : "",
   );
+  const focusedId = document.activeElement?.closest?.("#list .item")?.dataset.id;
   list.replaceChildren();
 
   if (!total) {
@@ -234,6 +243,14 @@ export function renderList() {
   if (total > LIST_LIMIT) {
     list.append(h("li", { class: "list-group" }, `Zobrazeno prvních ${LIST_LIMIT}. Přibližte mapu pro další.`));
   }
+  // po překreslení vrátit fokus klávesnice na stejnou knihovnu
+  if (focusedId) focusListItem(focusedId, true);
+}
+
+function focusListItem(id, preventScroll) {
+  const item = document.querySelector(`#list .item[data-id="${CSS.escape(id)}"]`);
+  if (item) item.focus({ preventScroll });
+  return Boolean(item);
 }
 
 /* ---------- Detail ---------- */
@@ -321,7 +338,7 @@ function renderDetail(lib) {
       lib.region ? h("span", { class: "badge" }, [lib.region, lib.district].filter(Boolean).join(" · ")) : null),
     h("p", { class: `state state-${st.state}` }, statusText(st, day, Boolean(lib.hours))),
     lib.lat != null || lib.catalog ? h("div", { class: "mobile-actions" },
-      lib.lat != null ? h("a", { href: mapyUrl(lib.lat, lib.lon), target: "_blank", rel: "noopener" }, "Navigovat") : null,
+      lib.lat != null ? h("a", { href: mapyUrl(lib.lat, lib.lon, app.point), target: "_blank", rel: "noopener" }, "Navigovat") : null,
       lib.catalog ? h("a", { href: lib.catalog, target: "_blank", rel: "noopener" }, "Katalog") : null) : null,
     ...hoursBlock(lib, day),
     lib.catalog ? h("a", { class: "cta", href: lib.catalog, target: "_blank", rel: "noopener" }, "Hledat knihu v katalogu ↗") : null,
@@ -339,7 +356,7 @@ function renderDetail(lib) {
       lib.supervisor ? row("Spadá pod", supervisor ? libLink(supervisor) : lib.supervisor.name) : null,
       row("Fond", formatFund(lib.fund))),
     h("div", { class: "links" },
-      lib.lat != null ? h("a", { href: mapyUrl(lib.lat, lib.lon), target: "_blank", rel: "noopener" }, "Navigovat (Mapy.cz) ↗") : null),
+      lib.lat != null ? h("a", { href: mapyUrl(lib.lat, lib.lon, app.point), target: "_blank", rel: "noopener" }, "Navigovat (Mapy.cz) ↗") : null),
     h("p", { class: "meta" },
       isSigla ? [h("span", {}, "Sigla "), h("code", {}, lib.id), " · "] : null,
       `Zdroj: Adresář knihoven NK ČR, stav k ${formatDate(app.generated)}`),
@@ -378,8 +395,7 @@ export function closeDetail() {
   delete document.body.dataset.view;
   if (isMobile()) setSheet("half");
   renderList();
-  const again = [...document.querySelectorAll("#list .item")].find((b) => b.firstChild.textContent === app.byId.get(last)?.name);
-  (again || $("#list-summary")).focus?.({ preventScroll: false });
+  if (!last || !focusListItem(last, false)) $("#list-summary").focus?.();
 }
 
 /* ---------- Filtry ---------- */
@@ -482,7 +498,14 @@ function setupFilters() {
 /* ---------- Hledání a poloha ---------- */
 
 const NOMINATIM = "https://nominatim.openstreetmap.org/search";
-let lastNominatim = 0;
+const geocode = createGeocoder({
+  fetchJson: async (query) => {
+    const params = new URLSearchParams({ format: "jsonv2", countrycodes: "cz", limit: "1", "accept-language": "cs", q: query });
+    const res = await fetch(`${NOMINATIM}?${params}`);
+    if (!res.ok) throw new Error(String(res.status));
+    return res.json();
+  },
+});
 
 export function setPoint(lat, lon, label, zoom, isUser = false) {
   app.point = { lat, lon };
@@ -573,17 +596,11 @@ function setupSearch() {
     const query = input.value.trim();
     if (!query) return;
     close();
-    // nejvýš 1 dotaz za sekundu (pravidla Nominatimu)
-    const wait = 1000 - (Date.now() - lastNominatim);
-    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
-    lastNominatim = Date.now();
     const button = $("#search-btn");
     button.disabled = true;
     try {
-      const params = new URLSearchParams({ format: "jsonv2", countrycodes: "cz", limit: "1", "accept-language": "cs", q: query });
-      const res = await fetch(`${NOMINATIM}?${params}`);
-      if (!res.ok) throw new Error(String(res.status));
-      const [hit] = await res.json();
+      const hit = await geocode(query);
+      if (hit === undefined) return; // jiné hledání ještě běží
       if (!hit) {
         showMessage("Místo se nepodařilo najít. Zkuste zadat obec.");
         return;

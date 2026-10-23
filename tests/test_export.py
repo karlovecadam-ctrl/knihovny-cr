@@ -113,6 +113,17 @@ class BuildLibrariesTest(unittest.TestCase):
         by = {lib["id"]: lib for lib in build_libraries(recs)}
         self.assertEqual(by["TST001"]["hours"]["days"][3], [["09:00", "18:00"]])
 
+    def test_facebook_used_when_no_other_web(self):
+        recs = list(read_records(FIXTURE))
+        for r in recs:
+            if r["SGL"][0]["a"] == ["TST001"]:
+                r["URL"] = [{"u": ["https://www.facebook.com/knihovnatestov"], "z": ["facebook"]}]
+            if r["SGL"][0]["a"] == ["TST010"]:
+                r["URL"] = [{"u": ["https://www.facebook.com/lhota"]}, {"u": ["https://www.lhota-testov.cz/"]}]
+        by = {lib["id"]: lib for lib in build_libraries(recs)}
+        self.assertEqual(by["TST001"]["web"], "https://www.facebook.com/knihovnatestov")
+        self.assertEqual(by["TST010"]["web"], "https://www.lhota-testov.cz/")
+
     def test_only_http_links(self):
         recs = list(read_records(FIXTURE))
         for r in recs:
