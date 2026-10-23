@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Testovací data ve struktuře ADR NK ČR. Všechny názvy, osoby, adresy a kontakty jsou smyšlené. -->
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+  <!-- A: městská knihovna s právní subjektivitou, pobočky, osobní i obecné kontakty -->
+  <record>
+    <leader>     nx  a22     n  4500</leader>
+    <datafield tag="SGL" ind1=" " ind2=" "><subfield code="a">TST001</subfield></datafield>
+    <datafield tag="NAZ" ind1=" " ind2=" "><subfield code="a">Městská knihovna Testov</subfield></datafield>
+    <datafield tag="ICO" ind1=" " ind2=" "><subfield code="a">99999901</subfield></datafield>
+    <datafield tag="EMK" ind1=" " ind2=" "><subfield code="a">9001</subfield></datafield>
+    <datafield tag="TYP" ind1=" " ind2=" "><subfield code="a">MK</subfield><subfield code="b">městská knihovna</subfield></datafield>
+    <datafield tag="FCE" ind1=" " ind2=" "><subfield code="a">profesionální</subfield><subfield code="a">právní subjektivita</subfield><subfield code="a">pověřená regionální funkcí</subfield></datafield>
+    <datafield tag="ADR" ind1=" " ind2=" "><subfield code="u">Náměstí 1</subfield><subfield code="c">123 45</subfield><subfield code="m">Testov</subfield><subfield code="g">50°1'30.00"N, 15°12'0.00"E</subfield></datafield>
+    <datafield tag="MES" ind1=" " ind2=" "><subfield code="a">Testov</subfield></datafield>
+    <datafield tag="KRJ" ind1=" " ind2=" "><subfield code="a">Středočeský kraj</subfield><subfield code="b">Kolín</subfield></datafield>
+    <datafield tag="JMN" ind1=" " ind2=" "><subfield code="t">Ing.</subfield><subfield code="k">Jan</subfield><subfield code="p">Novák</subfield><subfield code="r">ředitel</subfield><subfield code="o">Pan</subfield></datafield>
+    <datafield tag="JMN" ind1=" " ind2=" "><subfield code="k">Eva</subfield><subfield code="p">Zkoušková</subfield><subfield code="r">knihovnice</subfield></datafield>
+    <datafield tag="TEL" ind1=" " ind2=" "><subfield code="a">321 000 000</subfield><subfield code="a">+420 777 000 000</subfield></datafield>
+    <datafield tag="EML" ind1=" " ind2=" "><subfield code="u">info@knihovna-testov.cz</subfield></datafield>
+    <datafield tag="EML" ind1=" " ind2=" "><subfield code="u">jan.novak@knihovna-testov.cz</subfield><subfield code="z">ředitel</subfield></datafield>
+    <datafield tag="URL" ind1=" " ind2=" "><subfield code="u">https://www.knihovna-testov.cz/</subfield></datafield>
+    <datafield tag="URL" ind1=" " ind2=" "><subfield code="u">https://testov.tritius.cz/</subfield><subfield code="z">online katalog</subfield></datafield>
+    <datafield tag="OTD" ind1=" " ind2=" "><subfield code="1">9:00-12:00; 13:00-18:00</subfield><subfield code="2">9:00-18:00</subfield><subfield code="4">9:00-18:00</subfield><subfield code="5">9:00-15:00</subfield><subfield code="6">9:00-11:00</subfield><subfield code="p">V červenci a srpnu zkrácený provoz.</subfield></datafield>
+    <datafield tag="SLU" ind1=" " ind2=" "><subfield code="a">Wifi</subfield><subfield code="a">Samoobslužné vracení v době uzavření knihovny (bibliobox)</subfield><subfield code="a">Meziknihovní výpůjční služby</subfield></datafield>
+    <datafield tag="PVZ" ind1=" " ind2=" "><subfield code="n">Město Testov</subfield><subfield code="z">Petr Starosta</subfield><subfield code="t">+420 608 111 222</subfield></datafield>
+    <datafield tag="FND" ind1=" " ind2=" "><subfield code="k">85400 knih.jedn.</subfield><subfield code="p">120 tit.periodik</subfield><subfield code="r">2025</subfield></datafield>
+    <datafield tag="POB" ind1=" " ind2=" "><subfield code="s">TST002</subfield><subfield code="n">Pobočka Sever</subfield><subfield code="a">Severní 5</subfield><subfield code="m">Testov</subfield><subfield code="g">50°2'0.00"N, 15°12'0.00"E</subfield></datafield>
+    <datafield tag="POB" ind1=" " ind2=" "><subfield code="n">Pobočka Jih</subfield><subfield code="a">Jižní 7</subfield><subfield code="m">Testov</subfield><subfield code="g">50°1'0.00"N, 15°12'30.00"E</subfield></datafield>
+    <datafield tag="AKT" ind1=" " ind2=" "><subfield code="a">20260105</subfield></datafield>
+  </record>
+  <!-- B: malá obecní knihovna bez GPS, s osobními kontakty dobrovolnice -->
+  <record>
+    <leader>     nx  a22     n  4500</leader>
+    <datafield tag="SGL" ind1=" " ind2=" "><subfield code="a">TST010</subfield></datafield>
+    <datafield tag="NAZ" ind1=" " ind2=" "><subfield code="a">Obecní knihovna Lhota u Testova</subfield></datafield>
+    <datafield tag="EMK" ind1=" " ind2=" "><subfield code="a">9002</subfield></datafield>
+    <datafield tag="TYP" ind1=" " ind2=" "><subfield code="a">OK</subfield><subfield code="b">obecní knihovna</subfield></datafield>
+    <datafield tag="FCE" ind1=" " ind2=" "><subfield code="a">neprofesionální</subfield><subfield code="a">obsluhovaná regionální funkcí</subfield><subfield code="a">organizační složka obecního úřadu</subfield></datafield>
+    <datafield tag="ADR" ind1=" " ind2=" "><subfield code="u">Lhota 12</subfield><subfield code="c">123 46</subfield><subfield code="m">Lhota</subfield></datafield>
+    <datafield tag="KRJ" ind1=" " ind2=" "><subfield code="a">Středočeský kraj</subfield><subfield code="b">Kolín</subfield></datafield>
+    <datafield tag="JMN" ind1=" " ind2=" "><subfield code="k">Marie</subfield><subfield code="p">Fiktivní</subfield><subfield code="r">knihovnice</subfield></datafield>
+    <datafield tag="EML" ind1=" " ind2=" "><subfield code="u">knihovna.lhota@seznam.cz</subfield></datafield>
+    <datafield tag="TEL" ind1=" " ind2=" "><subfield code="a">+420 603 000 000</subfield></datafield>
+    <datafield tag="OTD" ind1=" " ind2=" "><subfield code="3">16:00-18:00</subfield></datafield>
+    <datafield tag="PVK" ind1=" " ind2=" "><subfield code="s">TST001</subfield><subfield code="n">Městská knihovna Testov</subfield></datafield>
+    <datafield tag="PVZ" ind1=" " ind2=" "><subfield code="n">Obec Lhota</subfield><subfield code="z">Karel Vomáčka</subfield></datafield>
+  </record>
+  <!-- C: zrušená knihovna -->
+  <record>
+    <leader>     nx  a22     n  4500</leader>
+    <datafield tag="SGL" ind1=" " ind2=" "><subfield code="a">TST020</subfield></datafield>
+    <datafield tag="NAZ" ind1=" " ind2=" "><subfield code="a">Obecní knihovna Zaniklov</subfield></datafield>
+    <datafield tag="EMK" ind1=" " ind2=" "><subfield code="a">9003</subfield></datafield>
+    <datafield tag="TYP" ind1=" " ind2=" "><subfield code="a">OK</subfield><subfield code="b">obecní knihovna</subfield></datafield>
+    <datafield tag="STT" ind1=" " ind2=" "><subfield code="a">KNIHOVNA ZRUŠENA!</subfield></datafield>
+  </record>
+  <!-- D: firemní knihovna mimo evidenci MK -->
+  <record>
+    <leader>     nx  a22     n  4500</leader>
+    <datafield tag="SGL" ind1=" " ind2=" "><subfield code="a">TST030</subfield></datafield>
+    <datafield tag="NAZ" ind1=" " ind2=" "><subfield code="a">Informační středisko Testfirma</subfield></datafield>
+    <datafield tag="TYP" ind1=" " ind2=" "><subfield code="a">SP</subfield><subfield code="b">ostatní specializovaná knihovna</subfield></datafield>
+  </record>
+  <!-- E: vlastní záznam pobočky Sever knihovny A (bez EMK) -->
+  <record>
+    <leader>     nx  a22     n  4500</leader>
+    <datafield tag="SGL" ind1=" " ind2=" "><subfield code="a">TST002</subfield></datafield>
+    <datafield tag="NAZ" ind1=" " ind2=" "><subfield code="a">Městská knihovna Testov</subfield><subfield code="b">Pobočka Sever</subfield></datafield>
+    <datafield tag="TYP" ind1=" " ind2=" "><subfield code="a">MK</subfield><subfield code="b">městská knihovna</subfield></datafield>
+    <datafield tag="ADR" ind1=" " ind2=" "><subfield code="u">Severní 5</subfield><subfield code="c">123 45</subfield><subfield code="m">Testov</subfield><subfield code="g">50°2'0.00"N, 15°12'0.00"E</subfield></datafield>
+    <datafield tag="KRJ" ind1=" " ind2=" "><subfield code="a">Středočeský kraj</subfield><subfield code="b">Kolín</subfield></datafield>
+    <datafield tag="OTD" ind1=" " ind2=" "><subfield code="3">13:00-17:00</subfield><subfield code="5">po dohodě</subfield></datafield>
+  </record>
+</collection>

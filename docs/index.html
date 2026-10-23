@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="light dark">
+  <title>Knihovny ČR</title>
+  <meta name="description" content="Mapa veřejně přístupných knihoven v České republice s otevírací dobou.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">Knihovny <span>ČR</span></h1>
+    <form class="search" id="search-form" role="search" autocomplete="off">
+      <label for="search" class="sr-only">Hledat obec, adresu nebo knihovnu</label>
+      <input id="search" type="search" placeholder="Obec, adresa nebo název knihovny"
+             role="combobox" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false">
+      <button type="submit" id="search-btn" class="btn">Hledat</button>
+      <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
+    </form>
+    <button id="locate" class="btn btn-locate" type="button" aria-label="Moje poloha">
+      <span aria-hidden="true">◎</span><span class="label">Moje poloha</span>
+    </button>
+  </header>
+
+  <div id="message" class="message" role="status" hidden></div>
+
+  <main class="layout">
+    <div id="map" class="map" aria-label="Mapa knihoven"></div>
+
+    <aside id="panel" class="panel" data-sheet="half">
+      <button id="sheet-handle" class="sheet-handle" type="button" aria-label="Zvětšit nebo zmenšit panel"></button>
+
+      <section class="filters" aria-label="Filtry">
+        <div class="quick">
+          <button id="quick-open" class="chip" type="button" aria-pressed="false">Otevřeno teď</button>
+          <button id="toggle-filters" class="chip" type="button" aria-expanded="false" aria-controls="filter-body">
+            Filtry <span id="filter-count" class="count" hidden></span>
+          </button>
+          <button id="quick-locate" class="chip chip-locate" type="button" aria-label="Moje poloha">◎</button>
+        </div>
+        <div id="filter-body" class="filter-body" hidden>
+          <div class="field">
+            <label for="f-region">Kraj</label>
+            <select id="f-region"><option value="">Všechny kraje</option></select>
+          </div>
+          <div class="field">
+            <label for="f-district">Okres</label>
+            <select id="f-district" disabled><option value="">Všechny okresy</option></select>
+          </div>
+          <fieldset class="field">
+            <legend>Typ knihovny</legend>
+            <div id="f-categories" class="checks"></div>
+            <label class="check"><input type="checkbox" id="f-main"> Jen hlavní budovy, bez poboček</label>
+          </fieldset>
+          <fieldset class="field">
+            <legend>Otevírací doba</legend>
+            <label class="check"><input type="checkbox" id="f-open"> Otevřeno teď</label>
+            <label class="check"><input type="checkbox" id="f-weekend"> Otevřeno o víkendu</label>
+            <label class="check"><input type="checkbox" id="f-unknown" checked> Ukázat i knihovny s neuvedenou dobou</label>
+          </fieldset>
+          <fieldset class="field">
+            <legend>Služby</legend>
+            <div id="f-services" class="checks"></div>
+          </fieldset>
+          <button id="f-reset" class="btn btn-quiet" type="button">Zrušit filtry</button>
+        </div>
+      </section>
+
+      <section id="list-view" class="list-view" aria-label="Seznam knihoven">
+        <p id="list-summary" class="list-summary" aria-live="polite">Načítám knihovny…</p>
+        <ol id="list" class="list"></ol>
+      </section>
+
+      <section id="detail-view" class="detail" aria-label="Detail knihovny" hidden></section>
+
+      <footer class="sources">
+        Data: <a href="https://www.nkp.cz/katalogy-databaze-digitalni-knihovny/centralni-adresar-knihoven-a-informacnich-instituci-v-cr-cadr" target="_blank" rel="noopener">Centrální adresář knihoven NK ČR</a> (CC0),
+        stav k <span id="generated">–</span>.
+        Mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">přispěvatelé OpenStreetMap</a>,
+        hledání adres <a href="https://nominatim.org/" target="_blank" rel="noopener">Nominatim</a>.
+        Jména a kontakty, které mohou patřit soukromým osobám, záměrně nezobrazujeme.
+      </footer>
+    </aside>
+  </main>
+</body>
+</html>
