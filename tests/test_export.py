@@ -4,10 +4,11 @@ import shutil
 import tempfile
 import unittest
 
-from build.export import build_libraries, summary, write_csv, write_json
+from build.export import branch_id, build_libraries, summary, write_csv, write_json
 from build.marc import read_records
 
 FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "adr-sample.xml")
+JIH = branch_id("TST001", "Pobočka Jih", "Jižní 7, Testov")
 
 KEYS = {"id", "name", "category", "typeLabel", "professional", "region", "district", "address", "municipality",
         "lat", "lon", "approx", "hours", "web", "catalog", "emails", "phones", "director", "services",
@@ -32,7 +33,7 @@ def libraries(geocoder=None):
 class BuildLibrariesTest(unittest.TestCase):
     def test_only_public_and_branches(self):
         _, by = libraries()
-        self.assertEqual(set(by), {"TST001", "TST010", "TST002", "TST001-2"})
+        self.assertEqual(set(by), {"TST001", "TST010", "TST002", JIH})
 
     def test_site_record_contract(self):
         _, by = libraries()
@@ -55,7 +56,7 @@ class BuildLibrariesTest(unittest.TestCase):
         self.assertEqual(a["serviceKeys"], ["wifi", "bibliobox"])
         self.assertIn("Meziknihovní výpůjční služby", a["services"])
         self.assertIsNone(a["parent"])
-        self.assertEqual(a["branches"], ["TST002", "TST001-2"])
+        self.assertEqual(a["branches"], ["TST002", JIH])
         self.assertEqual(a["fund"], {"books": 85400, "periodicals": 120, "year": 2025})
 
     def test_branch_with_own_record(self):
@@ -68,7 +69,7 @@ class BuildLibrariesTest(unittest.TestCase):
 
     def test_branch_without_own_record(self):
         _, by = libraries()
-        b = by["TST001-2"]
+        b = by[JIH]
         self.assertEqual(b["name"], "Městská knihovna Testov – Pobočka Jih")
         self.assertEqual(b["parent"], "TST001")
         self.assertIsNone(b["hours"])
@@ -136,6 +137,21 @@ class BuildLibrariesTest(unittest.TestCase):
     def test_missing_gps_without_geocoder(self):
         _, by = libraries()
         self.assertEqual((by["TST010"]["lat"], by["TST010"]["lon"]), (None, None))
+
+
+class BranchIdTest(unittest.TestCase):
+    def test_branch_id_is_stable(self):
+        self.assertRegex(JIH, r"^TST001-[0-9a-f]{6}$")
+        self.assertEqual(branch_id("TST001", "pobočka  JIH", "Jižní 7,  Testov"), JIH)
+        self.assertNotEqual(branch_id("TST001", "Pobočka Sever", "Severní 5, Testov"), JIH)
+
+    def test_branch_ids_do_not_depend_on_order(self):
+        recs = list(read_records(FIXTURE))
+        for r in recs:
+            if r["SGL"][0]["a"] == ["TST001"]:
+                r["POB"].reverse()
+        ids = {lib["id"] for lib in build_libraries(recs)}
+        self.assertIn(JIH, ids)
 
 
 class OutputTest(unittest.TestCase):

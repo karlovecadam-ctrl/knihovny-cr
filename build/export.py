@@ -1,6 +1,7 @@
 """Sestavení záznamů pro web (datový kontrakt v plánu), zápis JSON a CSV a souhrn vyplněnosti."""
 
 import collections
+import hashlib
 import csv
 import json
 import os
@@ -9,7 +10,7 @@ import re
 from build.geocode import parse_dms
 from build.hours import merge_otd, parse_hours
 from build.marc import Record, first
-from build.privacy import NameIndex, director, public_emails, public_phones, sanitize_text
+from build.privacy import NameIndex, director, normalize, public_emails, public_phones, sanitize_text
 from build.select import category, expand_branches, is_public
 
 CATALOG_HINTS = ("katalog", "opac", "tritius", "clavius", "koha", "verbis", "aleph", "primo", "carmen")
@@ -128,6 +129,13 @@ def to_site_record(rec: Record, names: NameIndex | None = None, geocoder=None, f
     }
 
 
+def branch_id(parent_id: str, name: str | None, address: str) -> str:
+    """Stabilní ID pobočky bez vlastního záznamu: nezávisí na pořadí poboček v ADR,
+    takže odkaz `#id` vede po obnovení dat na stejnou pobočku."""
+    key = re.sub(r"\s+", " ", normalize(f"{name or ''}|{address}")).strip()
+    return f"{parent_id}-{hashlib.sha1(key.encode('utf-8')).hexdigest()[:6]}"
+
+
 def _branch_without_record(pob: dict, parent: dict, branch_id: str, geocoder) -> dict:
     get = lambda code: (pob.get(code) or [None])[0]  # noqa: E731
     address = _address(get("a"), None, get("m"))
@@ -153,10 +161,8 @@ def build_libraries(records: list[Record], geocoder=None, names: NameIndex | Non
     public = [r for r in records if is_public(r)]
     libs = [to_site_record(r, names, geocoder) for r in public]
     by_id = {lib["id"]: lib for lib in libs}
-    counters: dict[str, int] = collections.Counter()
     for own, pob, parent_id in expand_branches(public, by_sigla):
         parent = by_id[parent_id]
-        counters[parent_id] += 1
         if own is not None and own.get("STT"):
             continue
         if own is not None:
@@ -167,10 +173,15 @@ def build_libraries(records: list[Record], geocoder=None, names: NameIndex | Non
                 libs.append(branch)
                 by_id[sigla] = branch
         else:
-            branch_id = f"{parent_id}-{counters[parent_id]}"
-            branch = _branch_without_record(pob, parent, branch_id, geocoder)
+            get = lambda code: (pob.get(code) or [""])[0]  # noqa: E731
+            new_id = base = branch_id(parent_id, get("n"), _address(get("a"), None, get("m")))
+            n = 1
+            while new_id in by_id:  # dvě pobočky se stejným názvem i adresou
+                n += 1
+                new_id = f"{base}-{n}"
+            branch = _branch_without_record(pob, parent, new_id, geocoder)
             libs.append(branch)
-            by_id[branch_id] = branch
+            by_id[new_id] = branch
         if branch["id"] != parent_id and branch["parent"] is None:
             branch["parent"] = parent_id
             parent["branches"].append(branch["id"])
