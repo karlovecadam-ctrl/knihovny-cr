@@ -1,5 +1,6 @@
 // Mapa: dlaždice OSM, body knihoven a shluky, zvýraznění, místo hledání a posuny výřezu.
 import { CZ_BOUNDS, app, cssVar, emit, isMobile } from "./store.js";
+import { needsPan } from "./view.js";
 
 let cluster;
 let legend;
@@ -124,13 +125,16 @@ export function inViewTest() {
 export const fitTo = (bounds, padding = 0) => app.map.fitBounds(bounds, { padding: [padding, padding] });
 export const centerOn = (ll, zoom) => app.map.setView(ll, zoom);
 
-// Posune mapu tak, aby knihovna byla uprostřed části mapy, kterou nezakrývá zásuvka detailu.
+// Když knihovnu zakrývá zásuvka detailu (nebo je u okraje), posune ji doprostřed viditelné části mapy.
+// Vrací true, pokud se mapa posunula.
 export function panToVisible(lib, drawerWidth) {
-  if (lib.lat == null) return;
+  if (lib.lat == null) return false;
   const size = app.map.getSize();
   const target = app.map.latLngToContainerPoint([lib.lat, lib.lon]);
+  if (!needsPan(target, size, drawerWidth)) return false;
   const wantX = (size.x - drawerWidth) / 2;
   app.map.panBy([target.x - wantX, target.y - size.y / 2]);
+  return true;
 }
 
 export function zoomToArea(region, district) {

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  activeFilterChips, clearFilter, defaultSort, hashFor, page, parseHash, shouldShowStart, sortLibraries,
+  activeFilterChips, clearFilter, defaultSort, hashFor, needsPan, page, parseHash, shouldShowStart, sortLibraries,
 } from "../docs/js/view.js";
 
 const CATEGORIES = [["obecni", "Obecní a městské"], ["krajske", "Krajské"], ["vysokoskolske", "Vysokoškolské"], ["odborne", "Odborné"]];
@@ -107,6 +107,21 @@ test("úvodní obrazovka", () => {
   assert.equal(shouldShowStart({ ...s, filtersActive: true }), false);
   assert.equal(shouldShowStart({ ...s, zoom: 9 }), false);
   assert.equal(shouldShowStart({ ...s, zoom: 8 }), true);
+});
+
+test("posun mapy jen když knihovnu zakrývá zásuvka nebo je u okraje", () => {
+  const size = { x: 640, y: 700 };
+  assert.equal(needsPan({ x: 100, y: 300 }, size, 460), false); // ve viditelném pruhu
+  assert.equal(needsPan({ x: 400, y: 300 }, size, 460), true); // pod zásuvkou
+  assert.equal(needsPan({ x: 150, y: 300 }, size, 460), true); // těsně u zásuvky
+  assert.equal(needsPan({ x: 10, y: 300 }, size, 460), true); // u levého okraje
+  assert.equal(needsPan({ x: 100, y: 690 }, size, 460), true); // u spodního okraje
+  assert.equal(needsPan({ x: 100, y: 300 }, size, 0), false); // bez zásuvky
+});
+
+test("řazení „nejdřív otevřené“ použije předpočítané stavy", () => {
+  const states = new Map([["c", "open"], ["a", "closed"], ["u", "unknown"], ["q", "unknown"], ["n", "closed"]]);
+  assert.deepEqual(ids(sortLibraries(libs, "open", null, NOW, states)), ["c", "n", "a", "u", "q"]);
 });
 
 test("stránkování", () => {

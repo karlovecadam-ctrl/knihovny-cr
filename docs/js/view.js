@@ -3,20 +3,26 @@ import { distanceKm } from "./filters.js";
 import { openStatus } from "./status.js";
 
 const STATE_RANK = { open: 0, closed: 1, unknown: 2 };
-const byName = (a, b) => a.name.localeCompare(b.name, "cs");
+const collator = new Intl.Collator("cs"); // jeden pro všechna řazení (localeCompare je pro tisíce položek pomalé)
+const byName = (a, b) => collator.compare(a.name, b.name);
 
 export function defaultSort(point) {
   return point ? "distance" : "name";
 }
 
-// mode: "distance" | "name" | "open"
-export function sortLibraries(libs, mode, point, date) {
-  const dist = (lib) => (point && lib.lat != null ? distanceKm(point, lib) : Infinity);
+// mode: "distance" | "name" | "open"; states = předpočítané stavy (id → state), jinak se spočítají
+export function sortLibraries(libs, mode, point, date, states = null) {
+  const distances = new Map();
+  const dist = (lib) => {
+    if (!distances.has(lib.id)) distances.set(lib.id, point && lib.lat != null ? distanceKm(point, lib) : Infinity);
+    return distances.get(lib.id);
+  };
   const near = point ? (a, b) => dist(a) - dist(b) || byName(a, b) : byName;
   const list = [...libs];
   if (mode === "name") return list.sort(byName);
   if (mode === "distance") return list.sort(near);
-  const rank = new Map(list.map((lib) => [lib.id, STATE_RANK[openStatus(lib.hours, date).state]]));
+  const stateOf = (lib) => (states && states.has(lib.id) ? states.get(lib.id) : openStatus(lib.hours, date).state);
+  const rank = new Map(list.map((lib) => [lib.id, STATE_RANK[stateOf(lib)]]));
   return list.sort((a, b) => rank.get(a.id) - rank.get(b.id) || near(a, b));
 }
 
@@ -66,6 +72,12 @@ export const hashFor = (id) => `#${id}`;
 // Úvodní obrazovka, dokud návštěvník nic nehledal, nefiltroval ani nepřiblížil mapu nad úroveň kraje.
 export function shouldShowStart({ dismissed, point, filtersActive, zoom }) {
   return !dismissed && !point && !filtersActive && zoom < 9;
+}
+
+// Je bod (pixely v mapě) pod zásuvkou detailu nebo u okraje? Jen pak má smysl mapu posouvat.
+export function needsPan(point, size, drawerWidth, margin = 40) {
+  const visibleRight = size.x - drawerWidth;
+  return point.x < margin || point.x > visibleRight - margin || point.y < margin || point.y > size.y - margin;
 }
 
 export function page(list, size, pages) {

@@ -11,7 +11,7 @@ import {
   clearPoint, closeFilters, renderChips, resetFilters, setTab, setupAbout, setupFilters, setupLocate, setupSearch,
   setupTabs, updateApplyLabel,
 } from "./ui.js";
-import { parseHash } from "./view.js";
+import { hashFor, parseHash } from "./view.js";
 
 function applyAndRender() {
   app.visible = applyFilters(app.libs, filters, new Date());
@@ -32,11 +32,13 @@ function refreshStates() {
   if (app.selected && changed.includes(app.selected)) renderDetail(app.byId.get(app.selected));
 }
 
+// Odkaz #id: přiblížit na knihovnu, otevřít detail a pod ním ukázat běžný seznam (ne úvodní obrazovku).
 function openFromLink(id, { push = true } = {}) {
   const lib = app.byId.get(id);
+  app.startDismissed = true;
   if (lib && lib.lat != null) centerOn([lib.lat, lib.lon], Math.max(app.map.getZoom(), 15));
-  if (lib) app.startDismissed = true;
   if (!openDetail(id, { pan: true, push })) history.replaceState(null, "", `${location.pathname}${location.search}`);
+  renderList();
 }
 
 function wire() {
@@ -44,6 +46,10 @@ function wire() {
   on("render", (opts) => renderList(opts));
   on("map-moved", () => {
     if (isMobile()) return;
+    if (app.skipListOnMove) {
+      app.skipListOnMove = false;
+      return;
+    }
     renderList();
     updateApplyLabel();
   });
@@ -55,12 +61,13 @@ function wire() {
   });
   on("close-detail", () => closeDetail());
   on("detail-closed", (id) => {
-    if (!isMobile() || document.body.dataset.tab === "list") focusCard(id);
+    if (isMobile() && document.body.dataset.tab !== "list") return;
+    if (!focusCard(id)) $("#list-summary").focus({ preventScroll: true });
   });
   on("selected", (id) => markSelectedCard(id));
   on("marker-click", (id) => {
     if (isMobile()) showMapCard(id);
-    else openDetail(id);
+    else openDetail(id, { pan: true }); // posune jen, když bod zakryje zásuvka
   });
   on("map-click", () => {
     if (isMobile()) hideMapCard();
@@ -102,6 +109,11 @@ function wire() {
     invalidateMap();
     closeFilters({ fromPop: true });
     if (!isMobile()) setTab("list");
+    // otevřený detail se na mobilu stane samostatnou obrazovkou: potřebuje záznam v historii, aby Zpět nevedlo pryč
+    if (isMobile() && app.selected && !history.state?.detail) {
+      history.replaceState(null, "", `${location.pathname}${location.search}`);
+      history.pushState({ detail: app.selected }, "", hashFor(app.selected));
+    }
     renderList();
   });
 }

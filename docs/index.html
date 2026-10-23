@@ -41,6 +41,14 @@
     <button id="tab-map" role="tab" aria-selected="false" aria-controls="pane-map" type="button" tabindex="-1">Mapa</button>
   </div>
 
+  <!-- rychlé volby: na mobilu nad seznamem i mapou, při střední šířce nad oběma polovinami -->
+  <div class="quick">
+    <button id="quick-open" class="chip" type="button" aria-pressed="false">Otevřeno teď</button>
+    <button id="filters-toggle" class="chip" type="button" aria-expanded="false" aria-controls="filters">
+      Filtry <span id="filter-count" class="count" hidden></span>
+    </button>
+  </div>
+
   <main class="layout">
     <section id="pane-list" class="pane-list" role="tabpanel" aria-labelledby="tab-list">
       <aside id="filters" class="filters" aria-label="Filtry">
@@ -82,15 +90,9 @@
 
       <div class="results">
         <div class="toolbar">
-          <div class="quick">
-            <button id="quick-open" class="chip" type="button" aria-pressed="false">Otevřeno teď</button>
-            <button id="filters-toggle" class="chip" type="button" aria-expanded="false" aria-controls="filters">
-              Filtry <span id="filter-count" class="count" hidden></span>
-            </button>
-          </div>
           <div id="active-chips" class="active-chips" aria-label="Aktivní filtry"></div>
           <div class="summary-row">
-            <p id="list-summary" class="list-summary" aria-live="polite">Načítám knihovny…</p>
+            <p id="list-summary" class="list-summary" aria-live="polite" tabindex="-1">Načítám knihovny…</p>
             <label class="sort">Řadit
               <select id="sort">
                 <option value="distance">vzdálenost</option>

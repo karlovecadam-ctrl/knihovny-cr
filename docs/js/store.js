@@ -43,7 +43,18 @@ export const $ = (sel) => document.querySelector(sel);
 
 const mobileQuery = window.matchMedia("(max-width: 899px)");
 export const isMobile = () => mobileQuery.matches;
-export const onLayoutChange = (fn) => mobileQuery.addEventListener("change", fn);
+
+// Přechod mezi počítačem a mobilem (otočení tabletu, zúžení okna); volá fn jen při skutečné změně režimu.
+export function onLayoutChange(fn) {
+  let last = isMobile();
+  const check = () => {
+    if (isMobile() === last) return;
+    last = isMobile();
+    fn();
+  };
+  mobileQuery.addEventListener("change", check);
+  window.addEventListener("resize", check);
+}
 
 // Texty z dat se vkládají jako text, nikdy jako HTML.
 export function h(tag, props = {}, ...children) {

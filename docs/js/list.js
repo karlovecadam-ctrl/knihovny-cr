@@ -86,8 +86,8 @@ export function renderList({ keepPages = false } = {}) {
     matching = matching.filter(inView);
     unknownHours = unknownHours.filter(inView);
   }
-  matching = sortLibraries(matching, mode, app.point, now);
-  unknownHours = sortLibraries(unknownHours, mode, app.point, now);
+  matching = sortLibraries(matching, mode, app.point, now, app.states);
+  unknownHours = sortLibraries(unknownHours, mode, app.point, now, app.states);
   const total = matching.length + unknownHours.length;
 
   summary.replaceChildren(...summaryText(total, mobile));

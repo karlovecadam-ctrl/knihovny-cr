@@ -108,7 +108,7 @@ button, input, select { font: inherit; color: inherit; }
 .search { position: relative; flex: 1; max-width: 560px; display: flex; border: 1.5px solid var(--accent); border-radius: 999px; background: var(--surface); }
 .search input { flex: 1; min-width: 0; padding: 8px 16px; border: 0; background: transparent; border-radius: 999px; }
 .search input:focus-visible { outline: none; }
-.search:focus-within { box-shadow: 0 0 0 3px var(--accent-soft); }
+.search:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
 #search-btn { border: 0; border-radius: 0 999px 999px 0; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 0 18px; cursor: pointer; }
 #search-btn:disabled { opacity: 0.6; cursor: progress; }
 .suggestions {
@@ -150,7 +150,7 @@ button, input, select { font: inherit; color: inherit; }
 /* Výsledky */
 .results { min-height: 0; overflow-y: auto; padding: 14px 18px 0; display: flex; flex-direction: column; gap: 12px; }
 .toolbar { display: grid; gap: 10px; }
-.quick { display: none; gap: 8px; flex-wrap: wrap; }
+.quick { display: none; gap: 8px; flex-wrap: wrap; padding: 10px var(--gutter) 0; }
 .active-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .active-chips:empty { display: none; }
 .active-chips .chip { background: var(--accent-soft); border-color: transparent; color: var(--accent); font-weight: 600; padding: 4px 10px; }
@@ -305,7 +305,9 @@ button, input, select { font: inherit; color: inherit; }
   body[data-tab="list"] .pane-map { visibility: hidden; }
   body[data-tab="map"] .pane-list { visibility: hidden; }
   .results { padding: 10px var(--gutter) 0; }
-  .filters { position: fixed; inset: 0; z-index: 2000; width: auto; padding: 16px var(--gutter); }
+  .quick { padding-top: 8px; }
+  /* filtry jsou v panelu seznamu, který je při záložce Mapa skrytý */
+  .filters { visibility: visible; position: fixed; inset: 0; z-index: 2000; width: auto; padding: 16px var(--gutter); }
   .filters-foot { bottom: -16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
   .sort { margin-left: 0; }
   .summary-row { justify-content: space-between; }

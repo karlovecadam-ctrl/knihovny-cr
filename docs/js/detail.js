@@ -157,7 +157,8 @@ export function openDetail(id, { pan = false, push = true } = {}) {
   box.scrollTop = 0;
   emit("selected", id);
   selectMarker(lib);
-  if (!mobile && pan) panToVisible(lib, box.offsetWidth);
+  // posun kvůli detailu nemá přestavět seznam (uživatel by ztratil místo v seznamu)
+  if (!mobile && pan && panToVisible(lib, box.offsetWidth)) app.skipListOnMove = true;
   if (mobile) {
     if (push && !wasOpen) history.pushState({ detail: id }, "", hashFor(id));
     else history.replaceState({ detail: id }, "", hashFor(id));
